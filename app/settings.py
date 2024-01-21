@@ -11,20 +11,11 @@ from app.settings_utils import support_deprecated_vars
 
 load_dotenv()
 
-APP_HOST = support_deprecated_vars(
-    new_name="APP_HOST",
+APP_SOCKET = support_deprecated_vars(
+    new_name="APP_SOCKET",
     deprecated_name="SERVER_ADDR",
     until=date(2024, 1, 1),
 )
-APP_PORT = None
-_app_port = support_deprecated_vars(
-    new_name="APP_PORT",
-    deprecated_name="SERVER_PORT",
-    until=date(2024, 1, 1),
-    allow_empty_string=True,
-)
-if _app_port:
-    APP_PORT = int(_app_port)
 
 DB_HOST = os.environ["DB_HOST"]
 DB_PORT = int(os.environ["DB_PORT"])

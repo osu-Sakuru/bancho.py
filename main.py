@@ -73,40 +73,29 @@ def main(argv: Sequence[str]) -> int:
     # show info & any contextual warnings.
     app.utils.display_startup_dialog()
 
-    # the server supports both inet and unix sockets.
+    # the server supports only unix sockets.
 
     uds = None
-    host = None
-    port = None
 
-    if (
-        app.utils.is_valid_inet_address(app.settings.APP_HOST)
-        and app.settings.APP_PORT is not None
-    ):
-        host = app.settings.APP_HOST
-        port = app.settings.APP_PORT
-    elif (
-        app.utils.is_valid_unix_address(app.settings.APP_HOST)
-        and app.settings.APP_PORT is None
-    ):
-        uds = app.settings.APP_HOST
+    if app.utils.is_valid_unix_address(app.settings.APP_SOCKET):
+        uds = app.settings.APP_SOCKET
 
         # make sure the socket file does not exist on disk and can be bound
         # (uvicorn currently does not do this for us, and will raise an exc)
-        if os.path.exists(app.settings.APP_HOST):
-            if app.utils.processes_listening_on_unix_socket(app.settings.APP_HOST) != 0:
+        if os.path.exists(app.settings.APP_SOCKET):
+            if app.utils.processes_listening_on_unix_socket(app.settings.APP_SOCKET) != 0:
                 log(
-                    f"There are other processes listening on {app.settings.APP_HOST}.\n"
+                    f"There are other processes listening on {app.settings.APP_SOCKET}.\n"
                     f"If you've lost it, bancho.py can be killed gracefully with SIGINT.",
                     Ansi.LRED,
                 )
                 return 1
             else:
-                os.remove(app.settings.APP_HOST)
+                os.remove(app.settings.APP_SOCKET)
     else:
         raise ValueError(
-            "%r does not appear to be an IPv4, IPv6 or Unix address"
-            % app.settings.APP_HOST,
+            "%r does not appear to be an Unix address"
+            % app.settings.APP_SOCKET,
         ) from None
 
     # run the server indefinitely
@@ -121,8 +110,6 @@ def main(argv: Sequence[str]) -> int:
         #       with standards. perhaps look into this.
         headers=[("bancho-version", app.settings.VERSION)],
         uds=uds,
-        host=host or "127.0.0.1",  # uvicorn defaults
-        port=port or 8000,  # uvicorn defaults
     )
 
     return 0
